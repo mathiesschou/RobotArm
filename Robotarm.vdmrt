@@ -5,27 +5,72 @@ values
     
     R : real = 30; -- length of arm (cm)
     M1: real =  0; -- lower safe angle (radians)rea
-    M2: real = 1.57079633; -- upper bound safe angle (radians)safe area
+    M2: real = 1.6; -- upper bound safe angle (radians)safe area
 
 instance variables  
 
     now : real; -- time simulation (seconds)
-
-    q : real; -- current arm position (radians)
-    q_delta : real; -- change in arm position (radians)
-
-    public motor_on: nat; -- motor on/off
+    public q : real; -- current arm position (radians)
+    public q_change : real; -- change in arm position (radians)
+    public motor_state: nat; -- motor on/off
+    target : real; -- target angle
+    initial_angle : real; -- initial angel on start
+    Torque : real;
 
 operations
 
     public Robot_arm: () ==> Robot_arm
     Robot_arm() == (
-        now := (0);
-        q := (0);
-        q_delta := [0];
-        motor_on := (0);
+        now := 0;
+        q := 0;
+        q_change := 0;
+        motor_state := 0;
+        target := 0;
+        initial_angle := 0;
+        torque := 0.2; 
     );
 
+    --! Motor on 
+    public Motor_on: () ==> ()
+    Motor_on() : duration (0) (
+        RobotArmSystem`Robot_arm.motor_state := 1    
+    )
+
+    --! Motor off
+    public Motor_off: () ==> Motor_off
+    Motor_off() : duration (0) (
+        RobotArmSystem`Robot_arm.motor_state := 0
+    )  
+
+    
+        
+    --! Evolution of arm movement
+    public step: (real) ==> ()
+    step(q_delta) == duration (0) (
+        
+        --! Hvis motoren er tændt, så kører den
+        if motor_state = 1 then ( 
+
+        --! Bestem om den skal op eller ned 
+        if (q > target)
+            Torque := Torque * -1;
+        --! Calculate change
+        dcl new_q : real := q + Torque;
+        -- set boundaries for range
+        
+        if new_q < M1 then
+            q := M1;
+        elseif new_q > M2 then
+            q := M2;
+        else
+            q := new_q;
+
+        if target < q
+        )
+
+
+    )
+    
 
 
 
