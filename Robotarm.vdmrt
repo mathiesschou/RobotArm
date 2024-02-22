@@ -1,78 +1,48 @@
-class Robot_arm
-types
-    
+class RobotArm
+types 
+    public Angle = real inv theta == theta >= 0 and theta <= 1.6 -- our limit with angle limits 0 to 90
+    public AngularVelocity = real;
+    public AngularAcceleration = real;
+
 values
+
+    Gravity: real = 9.82;
+
+instance variables
     
-    R : real = 30; -- length of arm (cm)
-    M1: real =  0; -- lower safe angle (radians)rea
-    M2: real = 1.6; -- upper bound safe angle (radians)safe area
-
-instance variables  
-
-    now : real; -- time simulation (seconds)
-    public q : real; -- current arm position (radians)
-    public q_change : real; -- change in arm position (radians)
-    public motor_state: nat; -- motor on/off
-    target : real; -- target angle
-    initial_angle : real; -- initial angel on start
-    Torque : real;
+    public currentPosition: Angle := 0; -- radianer
+    public currentVelocity: AngularVelocity := 0; 
+    public currentAcceleration: AngularAcceleration := 0;
+    public kp: real := 0.1; -- proportional factor
+    public kd: real; := 0.01; -- derivative factor
+    public armLength: real := 30; -- cm
+    public targetPosition: Angle := 0; -- radianer
+    public prevError: real := 0; - radianer
+    public currentTime: real := 0; -- simuleret tid
 
 operations
+    public RobotArm: () ==> RobotArm
+    RobotArm() == ();
 
-    public Robot_arm: () ==> Robot_arm
-    Robot_arm() == (
-        now := 0;
-        q := 0;
-        q_change := 0;
-        motor_state := 0;
-        target := 0;
-        initial_angle := 0;
-        torque := 0.2; 
+    SetTargetPosition: () ==> ()
+    SetTargetPosition() == (
+        targetPosition := 1.2;
     );
 
-    --! Motor on 
-    public Motor_on: () ==> ()
-    Motor_on() : duration (0) (
-        RobotArmSystem`Robot_arm.motor_state := 1    
-    )
+    UpdatePosition: () ==> ()
+    UpdatePosition() == (
+        def dt = 1; 
+        currentTime := currentTime + dt; -- simuleret tid
 
-    --! Motor off
-    public Motor_off: () ==> Motor_off
-    Motor_off() : duration (0) (
-        RobotArmSystem`Robot_arm.motor_state := 0
-    )  
+        def error = targetPosition - currentPosition; 
+        def derivative = (error - prevError) / dt; 
+        prevError := error; 
 
-    
-        
-    --! Evolution of arm movement
-    public step: (real) ==> ()
-    step(q_delta) == duration (0) (
-        
-        --! Hvis motoren er tændt, så kører den
-        if motor_state = 1 then ( 
+        def motorTorque = kp * error + kd * derivative; 
 
-        --! Bestem om den skal op eller ned 
-        if (q > target)
-            Torque := Torque * -1;
-        --! Calculate change
-        dcl new_q : real := q + Torque;
-        -- set boundaries for range
-        
-        if new_q < M1 then
-            q := M1;
-        elseif new_q > M2 then
-            q := M2;
-        else
-            q := new_q;
+        currentAcceleration := motorTorque / (armLength / 100); -- antager uniform massefordeling dvs ingen effektor og unit i m.
+        currentVelocity := currentVelocity + currentAcceleration * dt;
+        currentPosition := currentPosition + currentVelocity * dt;
+    );
 
-        if target < q
-        )
-
-
-    )
-    
-
-
-
-
-end Robot_arm
+end RobotArm

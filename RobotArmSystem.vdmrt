@@ -2,6 +2,6 @@ system RobotArmSystem
 
 instance variables 
 
-    public static arm:Robot_arm := new Robot_arm();
+    public static arm:RobotArm := new RobotArm();
 
 end RobotArmSystem
