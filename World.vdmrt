@@ -1,0 +1,28 @@
+class World
+
+operations
+
+    public Scenario1 : () ==> bool 
+    Scenario1 () == (
+        
+        return true; 
+    );
+
+    public Scenario2 : () ==> bool 
+    Scenario2 () == (
+
+        return true; 
+    );
+
+    public Scenario3 : () ==> bool 
+    Scenario3 () == (
+
+        return true; 
+    );
+
+    public Scenario4 : () ==> bool 
+    Scenario4 () == (
+
+        return true; 
+    );
+end World
