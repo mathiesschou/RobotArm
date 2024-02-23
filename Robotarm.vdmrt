@@ -1,48 +1,83 @@
 class RobotArm
-types 
-    public Angle = real inv theta == theta >= 0 and theta <= 1.6 -- our limit with angle limits 0 to 90
-    public AngularVelocity = real;
-    public AngularAcceleration = real;
 
-values
+types
+    public Angle = real inv N == N >= 0 and N <= 1.6; -- begrænsning N ca 0 til 90 grader
 
-    Gravity: real = 9.82;
+values 
+    g: real = 9.81;
+    r: real = 0.8; -- arm lægnde i m
+    mass: real = 1.2; -- kg
+    Fc: real = 0.1; -- Coulomb friktionskoefficient
+    Fv: real = 0.05; -- viskøs friktionskoefficient
+
 
 instance variables
-    
-    public currentPosition: Angle := 0; -- radianer
-    public currentVelocity: AngularVelocity := 0; 
-    public currentAcceleration: AngularAcceleration := 0;
-    public kp: real := 0.1; -- proportional factor
-    public kd: real; := 0.01; -- derivative factor
-    public armLength: real := 30; -- cm
-    public targetPosition: Angle := 0; -- radianer
-    public prevError: real := 0; - radianer
-    public currentTime: real := 0; -- simuleret tid
+    public q: real; -- angle of roint. radianer
+    public q_vel: real; -- hastighed. rad/s
+    public q_acc: real; -- acceleration. rad/s^2
+
+    --! PID controller
+    public q_t: Angle; -- target - radianer
+    public kp: real; -- proportional factor
+    public kd: real; -- derivative factor
+    public prevError: real; -- radianer
+
+    public accumulatedTime: real; -- simuleret tid
 
 operations
     public RobotArm: () ==> RobotArm
-    RobotArm() == ();
-
-    SetTargetPosition: () ==> ()
-    SetTargetPosition() == (
-        targetPosition := 1.2;
+    RobotArm() == (
+        q := 0;
+        q_vel := 0; 
+        q_t := 0; 
+        kp := 0.1; 
+        kd := 0.01;
+        q_acc := 0; 
+        prevError := 0; 
+        accumulatedTime := 0; 
     );
 
-    UpdatePosition: () ==> ()
-    UpdatePosition() == (
-        def dt = 1; 
-        currentTime := currentTime + dt; -- simuleret tid
-
-        def error = targetPosition - currentPosition; 
-        def derivative = (error - prevError) / dt; 
-        prevError := error; 
-
-        def motorTorque = kp * error + kd * derivative; 
-
-        currentAcceleration := motorTorque / (armLength / 100); -- antager uniform massefordeling dvs ingen effektor og unit i m.
-        currentVelocity := currentVelocity + currentAcceleration * dt;
-        currentPosition := currentPosition + currentVelocity * dt;
+    public SetTargetPosition: Angle ==> ()
+    SetTargetPosition(target) == (
+        q_t := target;
     );
 
+    public SetCurrentPosition: Angle ==> ()
+    SetCurrentPosition(position) == (
+        q := position;
+    );
+
+    public SetKp: real ==> ()
+    SetKp(k_p) == (
+        kp := k_p;
+    );
+
+    public SetKd: real ==> ()
+    SetKd(k_d) == (
+        kd := k_d;
+    );
+    
+    public Step: real ==> ()
+    Step(delta) == duration(0) (
+        dcl errorPos : real := q_t - q,
+            errorDerivative : real := (errorPos - prevError) / delta,
+            motorTorque : real := (kp * errorPos) + (kd * errorDerivative);
+            dcl I : real := 2 * r * r; -- antager en standard inertimoment 2*r^2
+        
+        -- Update previous error
+        prevError := errorPos;
+
+        -- Update momvement values
+        q_acc := motorTorque / I; -- antager uniform massefordeling armlængde meter. a = t / i
+        q_vel := q_vel + q_acc * delta;
+        q := q + q_vel * delta;
+
+        -- Update time
+        accumulatedTime := accumulatedTime + delta;
+
+        --! Boundary conditions
+        if q < 0 then q := 0
+        elseif q > 1.6 then q := 1.6;
+    );
+    
 end RobotArm

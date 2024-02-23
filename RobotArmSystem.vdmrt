@@ -1,7 +1,0 @@
-system RobotArmSystem
-
-instance variables 
-
-    public static arm:RobotArm := new RobotArm();
-
-end RobotArmSystem

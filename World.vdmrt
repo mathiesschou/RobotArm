@@ -1,10 +1,37 @@
 class World
 
+operations
 
-    public Scenario1 : () ==> bool 
+    public Scenario1 : () ==> bool
     Scenario1() == (
-       RobotArmSystem`
-       
+        dcl StepCount : nat := 0;
+
+        MySystem`arm.SetCurrentPosition(0);
+        MySystem`arm.SetTargetPosition(1);
+        MySystem`arm.SetKp(0.1); -- systems reaktion på en fejl
+        MySystem`arm.SetKd(0.2); -- systemets overshoot
+
+        while StepCount < 500 do ( 
+            MySystem`arm.Step(1);
+            StepCount := StepCount + 1;
+        );
+
+        return true;
+    );
+
+    public Scenario2 : () ==> bool
+    Scenario2() == (
+        return true;
+    );
+
+    public Scenario3 : () ==> bool
+    Scenario3() == (
+        return true;
+    );
+
+    public Scenario4 : () ==> bool
+    Scenario4() == (
+        return true;
     );
 
 end World
