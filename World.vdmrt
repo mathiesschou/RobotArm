@@ -38,15 +38,15 @@ operations
         return true;
     );
 
-    -- scenario 2: Arm moves from 1.2 radians back to 0 radians with Kp = 0.1 and Kd = 0.01
+    -- scenario 2: ideal scenario, assuming minimal overshoot and vibration
     public Scenario2 : () ==> bool
     Scenario2() == (
         dcl StepCount : nat := 0;
 
-        MySystem`arm.SetCurrentPosition(1.2);
-        MySystem`arm.SetTargetPosition(0);
-        MySystem`arm.SetKp(0.1);
-        MySystem`arm.SetKd(0.01);
+        MySystem`arm.SetCurrentPosition(0);
+        MySystem`arm.SetTargetPosition(1.0);
+        MySystem`arm.SetKp(0.2); -- assumed ideal Kp for minimal overshoot
+        MySystem`arm.SetKd(0.1); -- assumed ideal Kd for at lessen oscillation
 
         while StepCount < 500 do ( 
             MySystem`arm.Step(1);
@@ -73,17 +73,17 @@ operations
 
         return true;
     );
-    -- scenario 4: Moving between two close points, 0.5 to 0.7 radians with slow response and lower reponse to erorrs
+    -- scenario 4: what can go wrong. To high Kp and too low Kd
     public Scenario4 : () ==> bool
     Scenario4() == (
         dcl StepCount : nat := 0;
 
-        MySystem`arm.SetCurrentPosition(0.5);
-        MySystem`arm.SetTargetPosition(0.7);
-        MySystem`arm.SetKp(0.05);
-        MySystem`arm.SetKd(0.005);
+        MySystem`arm.SetCurrentPosition(0);
+        MySystem`arm.SetTargetPosition(1.0);
+        MySystem`arm.SetKp(1.0); -- too high Kp exessive overshoot
+        MySystem`arm.SetKd(0.01); -- too low Kd, not enough to dampen oscillation
 
-        while StepCount < 1000 do ( 
+        while StepCount < 500 do ( 
             MySystem`arm.Step(1);
             StepCount := StepCount + 1;
         );
