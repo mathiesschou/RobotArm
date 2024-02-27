@@ -63,8 +63,8 @@ operations
 
         MySystem`arm.SetCurrentPosition(0);
         MySystem`arm.SetTargetPosition(1);
-        MySystem`arm.SetKp(0.5); -- higher kp for a quicker response
-        MySystem`arm.SetKd(0.01);
+        MySystem`arm.SetKp(0.2); -- higher kp for a quicker response
+        MySystem`arm.SetKd(0.3);
 
         while StepCount < 500 do ( 
             MySystem`arm.Step(1);
