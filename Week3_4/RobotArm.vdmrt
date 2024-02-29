@@ -4,7 +4,6 @@ types
     public Angle = real inv N == N >= 0 and N <= 1.6; -- begrænsning N ca 0 til 90 grader
 
 values 
-    g: real = 9.81;
     r: real = 0.8; -- arm lægnde i m
     mass: real = 1.2; -- kg
     Fc: real = 0.1; -- Coulomb friktionskoefficient
