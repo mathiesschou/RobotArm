@@ -1,6 +1,28 @@
 class World
 
+instance variables
+    io : IO := new IO();
+
 operations
+    public echoState : (nat) ==> ()
+    echoState(counter) == (
+        dcl succ : bool;
+        dcl str : seq of char := "";
+        str := str ^ VDMUtil`val2seq_of_char[nat](counter);
+        str := str ^ " ";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.env_q);
+        str := str ^ " ";
+        str := str ^ VDMUtil`val2seq_of_char[nat](MySystem`arm.env_motor);
+        str := str ^ " ";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`controller.ctl_q);
+        str := str ^ " ";
+        str := str ^ VDMUtil`val2seq_of_char[nat](MySystem`controller.ctl_motor);
+        str := str ^ " ";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.env_qt);
+        str := str ^ "\n";
+        succ := io.echo(str)
+    );
+   
 
     -- test
     public ScenarioTest : () ==> bool
@@ -24,20 +46,20 @@ operations
     public Scenario1 : () ==> bool
     Scenario1() == (
          dcl StepCount : nat := 0;
-
+        MySystem`controller.MotorOn();
         MySystem`arm.SetCurrentPosition(1.5);
         MySystem`arm.SetTargetPosition(1);
         MySystem`arm.SetKp(0.15);
         MySystem`arm.SetKd(0.2);
 
         while StepCount < 500 do ( 
+            echoState(StepCount);
             MySystem`arm.Step(1);
             StepCount := StepCount + 1;
         );
 
         return true;
     );
-
     -- scenario 2: ideal scenario, assuming minimal overshoot and vibration, from 1.3 radians to 0
     public Scenario2 : () ==> bool
     Scenario2() == (
@@ -90,5 +112,6 @@ operations
 
         return true;
     );
+
 
 end World

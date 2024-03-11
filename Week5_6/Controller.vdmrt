@@ -1,0 +1,45 @@
+class Robotarm_Controller
+
+instance variables
+
+    public ctl_q: real; 
+    public ctl_motor: nat;
+    
+
+operations
+
+    public Robotarm_Controller : () ==> Robotarm_Controller
+    Robotarm_Controller () ==( 
+        ctl_q := 0;
+        ctl_motor := 0;
+    ); 
+
+    public AngleMonitor : () ==> ()
+    AngleMonitor() == duration(0) (
+        ctl_q := MySystem`arm.env_q;
+    );
+    
+    public EnsureSafeAngle : () ==> ()
+    EnsureSafeAngle() == duration(0) (
+        if (ctl_q < MySystem`arm.N1) then (
+            MotorOff();
+        )
+        elseif (ctl_q > MySystem`arm.N2) then (
+            MotorOff();
+        )
+    );
+
+    
+    public MotorOn : () ==> ()
+    MotorOn() == duration(0) (
+        ctl_motor := 1;
+        MySystem`arm.env_motor := 1;
+    );
+
+    public MotorOff : () ==> ()
+    MotorOff() == (
+        ctl_motor := 0;
+        MySystem`arm.env_motor := 0;
+    );
+
+end Robotarm_Controller
