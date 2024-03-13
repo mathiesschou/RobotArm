@@ -64,6 +64,14 @@ operations
         MySystem`arm.env_motorOn := false;
     );
 
+    public MonitorEnv : () ==> ()  --Collect all env data
+    MonitorEnv() == duration(0) (
+        ctl_q := MySystem`arm.env_q;
+        ctl_q_t := MySystem`arm.env_qt;
+        ctl_q_vel := MySystem`arm.env_q_vel;
+        ctl_vel_change := MySystem`arm.env_vel_change;
+    );
+
 
     --! Controller logic 1st iteration:
     public AdjustControlParameters : () ==> ()

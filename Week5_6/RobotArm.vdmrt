@@ -82,6 +82,16 @@ operations
     SetKd(k_d) == (
         kd := k_d;
     );
+
+    public Set_env_vel: real  ==>  ()
+    Set_env_vel(vel) == (
+        env_q_vel := vel;
+    );
+
+    public Get_env_q:() ==> real
+    Get_env_q() == (
+        return env_q;
+    );
     
     public Step: real ==> ()
     Step(delta) == duration(0) (
