@@ -18,11 +18,12 @@ instance variables
     public env_q : real; -- kg, angle of roint. radianer
     public env_qt : real;
     
-    public q_vel: real; -- hastighed. rad/s
-    public q_acc: real; -- acceleration. rad/s^2
+    public env_q_vel: real; -- hastighed. rad/s
+    public env_vel_change: real; --
+    public env_q_acc: real; -- acceleration. rad/s^2
     
     --! PID controller
-    
+
     public kp: real; -- proportional factor
     public kd: real; -- derivative factor
     public prevError: real; -- radianer
@@ -37,12 +38,13 @@ operations
         env_q := 0;
         env_qt := 0;
 
-        q_vel := 0; 
+        env_q_vel := 0; 
         kp := 0.1; 
         kd := 0.01;
-        q_acc := 0; 
+        env_q_acc := 0; 
         prevError := 0; 
         accumulatedTime := 0; 
+        env_vel_change := 0;
     );
 
     --! Making sure connection between controller and robotarm is up. 
@@ -92,10 +94,12 @@ operations
         -- Update previous error
         prevError := errorPos;
 
+        env_vel_change := env_q_vel;
+
         -- Update momvement values
-        q_acc := motorTorque / I; -- antager uniform massefordeling armlængde meter. a = t / i
-        q_vel := q_vel + q_acc * delta;
-        env_q := env_q + q_vel * delta;
+        env_q_acc := motorTorque / I; -- antager uniform massefordeling armlængde meter. a = t / i
+        env_q_vel := env_q_vel + env_q_acc * delta;
+        env_q := env_q + env_q_vel * delta;
 
         -- Update time
         accumulatedTime := accumulatedTime + delta;
@@ -104,8 +108,8 @@ operations
         if env_q < 0 then env_q := 0
         elseif env_q > 1.6 then env_q := 1.6;
         ) else (
-            q_acc := 0;
-            q_vel := 0;
+            env_q_acc := 0;
+            env_q_vel := 0;
         );
 
     );
