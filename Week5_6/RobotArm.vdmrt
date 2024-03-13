@@ -4,7 +4,6 @@ types
     public Angle = real inv N == N >= 0 and N <= 1.6; -- begrænsning N ca 0 til 90 grader
 
 values 
-
     public N1 : real = 0;
     public N2 : real =1.6;
 
@@ -21,7 +20,7 @@ instance variables
     
     public q_vel: real; -- hastighed. rad/s
     public q_acc: real; -- acceleration. rad/s^2
-
+    
     --! PID controller
     
     public kp: real; -- proportional factor
@@ -29,7 +28,6 @@ instance variables
     public prevError: real; -- radianer
 
     public accumulatedTime: real; -- simuleret tid
-
     public env_motorOn: bool := false; -- 1=running, 0=stopped
 
 operations

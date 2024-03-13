@@ -4,7 +4,7 @@ instance variables
 
     public ctl_q: real; 
     public ctl_motorOn: bool := false;
-    
+
 operations
 
     public Controller : () ==> Controller
@@ -18,18 +18,15 @@ operations
         return MySystem`arm.IsReady();
     );
 
-    public AngleMonitor : () ==> ()
-    AngleMonitor() == duration(0) (
+    public MonitorAngle : () ==> ()
+    MonitorAngle() == duration(0) (
         ctl_q := MySystem`arm.env_q;
     );
     
     public EnsureSafeAngle : () ==> ()
     EnsureSafeAngle() == duration(0) (
-        if (ctl_q < MySystem`arm.N1) then (
-            MotorOff();
-        )
-        elseif (ctl_q > MySystem`arm.N2) then (
-            MotorOff();
+        if ctl_q < MySystem`arm.N1 or ctl_q > MySystem`arm.N2 then (
+           MotorOff();
         )
     );
     
