@@ -2,6 +2,6 @@ system MySystem
 instance variables
     
     public static arm:RobotArm := new RobotArm(); 
-    public static controller:Robotarm_Controller := new Robotarm_Controller();
+    public static controller:Controller := new Controller();
 
 end MySystem

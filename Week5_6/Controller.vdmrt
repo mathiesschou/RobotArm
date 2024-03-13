@@ -1,18 +1,22 @@
-class Robotarm_Controller
+class Controller
 
 instance variables
 
     public ctl_q: real; 
-    public ctl_motor: nat;
+    public ctl_motorOn: bool := false;
     
-
 operations
 
-    public Robotarm_Controller : () ==> Robotarm_Controller
-    Robotarm_Controller () ==( 
+    public Controller : () ==> Controller
+    Controller () ==( 
         ctl_q := 0;
-        ctl_motor := 0;
+        ctl_motorOn := false;
     ); 
+
+    public CheckArmReady: () ==> bool
+    CheckArmReady() == (
+        return MySystem`arm.IsReady();
+    );
 
     public AngleMonitor : () ==> ()
     AngleMonitor() == duration(0) (
@@ -28,18 +32,19 @@ operations
             MotorOff();
         )
     );
-
     
     public MotorOn : () ==> ()
     MotorOn() == duration(0) (
-        ctl_motor := 1;
-        MySystem`arm.env_motor := 1;
+        ctl_motorOn := true;
+        MySystem`arm.env_motorOn := true;
     );
 
     public MotorOff : () ==> ()
     MotorOff() == (
-        ctl_motor := 0;
-        MySystem`arm.env_motor := 0;
+        ctl_motorOn := false;
+        MySystem`arm.env_motorOn := false;
     );
 
-end Robotarm_Controller
+
+
+end Controller

@@ -17,7 +17,6 @@ values
 instance variables
 
     public env_q : real; -- kg, angle of roint. radianer
-    public env_motor : nat; -- 1=running, 0=stopped
     public env_qt : real;
     
     public q_vel: real; -- hastighed. rad/s
@@ -31,10 +30,12 @@ instance variables
 
     public accumulatedTime: real; -- simuleret tid
 
+    public env_motorOn: bool := false; -- 1=running, 0=stopped
+
 operations
     public RobotArm: () ==> RobotArm
     RobotArm() == (
-        env_motor := 0;
+        env_motorOn := false; -- starter som slukket
         env_q := 0;
         env_qt := 0;
 
@@ -44,6 +45,22 @@ operations
         q_acc := 0; 
         prevError := 0; 
         accumulatedTime := 0; 
+    );
+
+    --! Making sure connection between controller and robotarm is up. 
+    public IsReady: () ==> bool
+        IsReady() == (
+        return true; 
+    );
+
+    public TurnMotorOn: () ==> ()
+    TurnMotorOn() == (
+        env_motorOn := true;
+    );
+
+    public TurnMotorOff: () ==> ()
+    TurnMotorOff() == (
+        env_motorOn := false;
     );
 
     public SetTargetPosition: Angle ==> ()
@@ -68,17 +85,16 @@ operations
     
     public Step: real ==> ()
     Step(delta) == duration(0) (
-        -- time_factor assumed to be in seconds
-        dcl errorPos : real := 
-                (env_motor * env_qt) - (env_motor * env_q),
-        errorDerivative : real := (errorPos - prevError) / delta,
-        motorTorque : real := (kp * errorPos) + (kd * errorDerivative);
+        if env_motorOn then (
+        dcl errorPos : real := env_qt - env_q,
+            errorDerivative : real := (errorPos - prevError) / delta,
+            motorTorque : real := (kp * errorPos) + (kd * errorDerivative);
             dcl I : real := 2 * r * r; -- antager en standard inertimoment 2*r^2
         
         -- Update previous error
         prevError := errorPos;
 
-        -- Update movement values
+        -- Update momvement values
         q_acc := motorTorque / I; -- antager uniform massefordeling armlængde meter. a = t / i
         q_vel := q_vel + q_acc * delta;
         env_q := env_q + q_vel * delta;
@@ -89,6 +105,11 @@ operations
         --! Boundary conditions
         if env_q < 0 then env_q := 0
         elseif env_q > 1.6 then env_q := 1.6;
+        ) else (
+            q_acc := 0;
+            q_vel := 0;
+        );
+
     );
     
 end RobotArm
