@@ -45,6 +45,4 @@ operations
         MySystem`arm.env_motorOn := false;
     );
 
-
-
 end Controller
