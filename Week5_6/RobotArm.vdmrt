@@ -19,13 +19,6 @@ instance variables
     public env_q : real; -- kg, angle of roint. radianer
     public env_motor : nat; -- 1=running, 0=stopped
     public env_qt : real;
-
-
-
-
-
-
-
     
     public q_vel: real; -- hastighed. rad/s
     public q_acc: real; -- acceleration. rad/s^2
@@ -44,7 +37,6 @@ operations
         env_motor := 0;
         env_q := 0;
         env_qt := 0;
-
 
         q_vel := 0; 
         kp := 0.1; 
@@ -86,7 +78,7 @@ operations
         -- Update previous error
         prevError := errorPos;
 
-        -- Update momvement values
+        -- Update movement values
         q_acc := motorTorque / I; -- antager uniform massefordeling armlængde meter. a = t / i
         q_vel := q_vel + q_acc * delta;
         env_q := env_q + q_vel * delta;
