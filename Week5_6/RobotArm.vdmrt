@@ -1,60 +1,28 @@
 class RobotArm
 
 types
-    public Angle = real inv N == N >= 0 and N <= 1.6; -- begrænsning N ca 0 til 90 grader
+    public Angle = real inv N == N >= -0.2 and N <= 1.8; -- begrænsning N ca 0 til 90 grader
 
 values 
-    public M1 : real = -0.2; -- max lower range
-    public M2 : real = 1.8; -- max upper range
-    public N1 : real = 0; -- safe lower range
-    public N2 : real = 1.6; -- safe upper range
-
-    r: real = 0.8; -- arm lægnde i m
-    mass: real = 1.2; -- kg
-    Fc: real = 0.1; -- Coulomb friktionskoefficient
-    Fv: real = 0.05; -- viskøs friktionskoefficient
+    public r: real = 0.8; -- arm lægnde i m
 
 instance variables
-
     public env_q : real; -- angle of roint. radianer
     public env_qt : real; -- target angle. radianer 
-    
     public q_vel: real; -- hastighed. rad/s
     public q_acc: real; -- acceleration. rad/s^2
-    
     --! PID controller
-    
-    public kp: real; -- proportional factor
-    public kd: real; -- derivative factor
-    public prevError: real; -- radianer
 
     public accumulatedTime: real; -- simuleret tid
-    public env_motorOn: bool; -- motor
 
 operations
     public RobotArm: () ==> RobotArm
     RobotArm() == (
-        env_motorOn := false; -- starter som slukket
         env_q := 0;
         env_qt := 0;
-
         q_vel := 0; 
-        kp := 0.1; 
-        kd := 0.01;
         q_acc := 0; 
-        prevError := 0; 
         accumulatedTime := 0; 
-    );
-
-
-    public TurnMotorOn: () ==> ()
-    TurnMotorOn() == (
-        env_motorOn := true;
-    );
-
-    public TurnMotorOff: () ==> ()
-    TurnMotorOff() == (
-        env_motorOn := false;
     );
 
     --! Set Position angle
@@ -68,46 +36,19 @@ operations
         env_q := position;
     );
 
-    --! Coefficients
-    public SetKp: real ==> ()
-    SetKp(k_p) == (
-        kp := k_p;
-    );
-
-    public SetKd: real ==> ()
-    SetKd(k_d) == (
-        kd := k_d;
-    );
-    
-
     --! Step function
     public Step: real ==> ()
     Step(delta) == duration(0) (
-        if env_motorOn then (
-        dcl errorPos : real := env_qt - env_q,
-            errorDerivative : real := (errorPos - prevError) / delta,
-            motorTorque : real := (kp * errorPos) + (kd * errorDerivative);
-            dcl I : real := 2 * r * r; -- antager en standard inertimoment 2*r^2
-        
-        -- Update previous error
-        prevError := errorPos;
+            -- Retrieve motorTorque and I from the controller
+            dcl motorTorque: real := MySystem`controller.GetMotorTorque();
+            dcl I: real := MySystem`controller.GetI();
+            
+            -- Update movement values
+            q_acc := motorTorque / I; -- Assuming uniform mass distribution arm length meter. a = t / i
+            q_vel := q_vel + q_acc * delta;
+            env_q := env_q + q_vel * delta;
 
-        -- Update momvement values
-        q_acc := motorTorque / I; -- antager uniform massefordeling armlængde meter. a = t / i
-        q_vel := q_vel + q_acc * delta;
-        env_q := env_q + q_vel * delta;
-
-        -- Update time
-        accumulatedTime := accumulatedTime + delta;
-
-        --! Boundary conditions
-        if env_q < 0 then env_q := 0
-        elseif env_q > 1.6 then env_q := 1.6;
-        ) else (
-            q_acc := 0;
-            q_vel := 0;
-        );
-
+            -- Update time
+            accumulatedTime := accumulatedTime + delta;
     );
-    
 end RobotArm

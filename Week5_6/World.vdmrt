@@ -13,9 +13,6 @@ operations
         str := str ^ "Time count: ";
         str := str ^ VDMUtil`val2seq_of_char[nat](counter);
         str := str ^ "\n";
-        str := str ^ "Motor status: ";
-        str := str ^ VDMUtil`val2seq_of_char[bool](MySystem`arm.env_motorOn);
-        str := str ^ "\n";
         str := str ^ "Enviroment q: ";
         str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.env_q);
         str := str ^ "\n";
@@ -30,15 +27,14 @@ operations
     public Scenario1 : () ==> bool
     Scenario1() == (
         dcl StepCount : nat := 0;
-        MySystem`controller.MotorOn();
         MySystem`arm.SetCurrentPosition(1.5);
         MySystem`arm.SetTargetPosition(1);
-        MySystem`arm.SetKp(0.15);
-        MySystem`arm.SetKd(0.2);
+        MySystem`controller.SetKp(0.15);
+        MySystem`controller.SetKd(0.2);
 
         while StepCount < 500 do ( 
             MySystem`controller.MonitorAngle();
-            MySystem`controller.EnsureSafeAngle();
+            MySystem`controller.CalculateTorque();
             MySystem`arm.Step(1);
             echoState(StepCount);
             StepCount := StepCount + 1;
@@ -51,15 +47,13 @@ operations
     public Scenario2 : () ==> bool
     Scenario2() == (
         dcl StepCount : nat := 0;
-        MySystem`controller.MotorOn();
         MySystem`arm.SetCurrentPosition(1.3);
         MySystem`arm.SetTargetPosition(0.0);
-        MySystem`arm.SetKp(0.01); -- assumed ideal Kp for minimal overshoot
-        MySystem`arm.SetKd(0.02); -- assumed ideal Kd for at lessen oscillation
+        MySystem`controller.SetKp(0.01); -- assumed ideal Kp for minimal overshoot
+        MySystem`controller.SetKd(0.02); -- assumed ideal Kd for at lessen oscillation
 
         while StepCount < 500 do ( 
             MySystem`controller.MonitorAngle();
-            MySystem`controller.EnsureSafeAngle();
             MySystem`arm.Step(1);
             echoState(StepCount);
             StepCount := StepCount + 1;
@@ -72,15 +66,13 @@ operations
     public Scenario3 : () ==> bool
     Scenario3() == (
         dcl StepCount : nat := 0;
-        MySystem`controller.MotorOn();
         MySystem`arm.SetCurrentPosition(0);
         MySystem`arm.SetTargetPosition(1);
-        MySystem`arm.SetKp(0.2); -- higher kp for a quicker response
-        MySystem`arm.SetKd(0.3);
+        MySystem`controller.SetKp(0.2); -- higher kp for a quicker response
+        MySystem`controller.SetKd(0.3);
 
         while StepCount < 500 do ( 
             MySystem`controller.MonitorAngle();
-            MySystem`controller.EnsureSafeAngle();
             MySystem`arm.Step(1);
             echoState(StepCount);
             StepCount := StepCount + 1;
@@ -93,15 +85,13 @@ operations
     public Scenario4 : () ==> bool
     Scenario4() == (
         dcl StepCount : nat := 0;
-        MySystem`controller.MotorOn();
         MySystem`arm.SetCurrentPosition(0);
         MySystem`arm.SetTargetPosition(1.4);
-        MySystem`arm.SetKp(1.0); -- too high Kp exessive overshoot
-        MySystem`arm.SetKd(0.01); -- too low Kd, not enough to dampen oscillation
+        MySystem`controller.SetKp(1.0); -- too high Kp exessive overshoot
+        MySystem`controller.SetKd(0.01); -- too low Kd, not enough to dampen oscillation
 
         while StepCount < 500 do ( 
             MySystem`controller.MonitorAngle();
-            MySystem`controller.EnsureSafeAngle();
             MySystem`arm.Step(1);
             echoState(StepCount);
             StepCount := StepCount + 1;
@@ -113,18 +103,15 @@ operations
     public Scenario5 : () ==> bool
     Scenario5() == (
         dcl StepCount : nat := 0;
-        MySystem`controller.MotorOn();
         MySystem`arm.SetCurrentPosition(0.3);
         MySystem`arm.SetTargetPosition(0.7);
-        MySystem`arm.SetKp(0.01); 
-        MySystem`arm.SetKd(0.12);
+        MySystem`controller.SetKp(0.01); 
+        MySystem`controller.SetKd(0.12);
 
         --! monitor angle
         while StepCount < 500 do ( 
             if StepCount mod 2 = 0 then
             MySystem`controller.MonitorAngle();
-
-            MySystem`controller.EnsureSafeAngle();
             MySystem`arm.Step(1);
             echoState(StepCount);
             StepCount := StepCount + 1;

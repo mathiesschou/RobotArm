@@ -1,14 +1,23 @@
 class Controller
 
+values 
+    public M1 : real = -0.2; -- max lower range
+    public M2 : real = 1.8; -- max upper range
+    public N1 : real = 0; -- safe lower range
+    public N2 : real = 1.6; -- safe upper range
+
 instance variables
     public ctl_q: real; 
-    public ctl_motorOn: bool := false;
+    public kp: real := 0.1; -- proportional factor
+    public kd: real := 0.01; -- derivative factor
+    public prevError: real := 0; -- radians
+    public motorTorque : real := 0;
+    public I : real := 2 * MySystem`arm.r * MySystem`arm.r;
 
 operations
     public Controller : () ==> Controller
     Controller () ==( 
         ctl_q := 0;
-        ctl_motorOn := false;
     ); 
 
     --! Montoring of environment
@@ -16,28 +25,37 @@ operations
     MonitorAngle() == duration(0) (
         ctl_q := MySystem`arm.env_q;
     );
-    
-    public EnsureSafeAngle : () ==> ()
-    EnsureSafeAngle() == duration(0) (
-        if ctl_q < MySystem`arm.N1 or ctl_q > MySystem`arm.N2 then (
-           MotorOff();
-        )
+
+    --! Coefficients
+    public SetKp: real ==> ()
+    SetKp(k_p) == (
+        kp := k_p;
+    );
+
+    public SetKd: real ==> ()
+    SetKd(k_d) == (
+        kd := k_d;
     );
     
-    --! Motor on/off
-    public MotorOn : () ==> ()
-    MotorOn() == duration(0) (
-        ctl_motorOn := true;
-        MySystem`arm.env_motorOn := true;
+     -- Getter method for motorTorque
+    public GetMotorTorque: () ==> real
+    GetMotorTorque() == (
+        return motorTorque;
     );
 
-    public MotorOff : () ==> ()
-    MotorOff() == (
-        ctl_motorOn := false;
-        MySystem`arm.env_motorOn := false;
+    -- Getter method for I
+    public GetI: () ==> real
+    GetI() == (
+        return I;
     );
-
-
-    --! Stepfunction calculation
+    -- Calculation method for torque
+    public CalculateTorque: () ==> ()
+    CalculateTorque() == (
+        dcl errorPos : real := MySystem`arm.env_qt - MySystem`arm.env_q;
+        dcl errorDerivative : real := (errorPos - prevError) / 1;
+        motorTorque := (kp * errorPos) + (kd * errorDerivative);
+        
+        prevError := errorPos;
+    );
 
 end Controller
