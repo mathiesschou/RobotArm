@@ -12,30 +12,33 @@ operations
         dcl str : seq of char := "";
         str := str ^ "Time count: ";
         str := str ^ VDMUtil`val2seq_of_char[nat](counter);
-        str := str ^ "\n";
-        str := str ^ "Envionment q: ";
+        str := str ^ "\nCurrent Position (rad): ";
         str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.env_q);
-        str := str ^ "\n";
-        str := str ^ "Controller q: ";
-        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`controller.ctl_q);
-        str := str ^ "\n";
-        str := str ^ "Envionment Torque: ";
+        str := str ^ "\nTarget Position (rad): ";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.env_qt);
+        str := str ^ "\nVelocity (rad/s): ";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.q_vel);
+        str := str ^ "\nAcceleration (rad/s^2): ";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.q_acc);
+        str := str ^ "\nMotor Torque (Nm): ";
         str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.env_motorTorque);
-        str := str ^ "\n";
-        str := str ^ "Controller Torque: ";
-        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`controller.ctl_motorTorque);
-        str := str ^ "\n";
+        str := str ^ "\nProportional Factor (Kp): ";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`controller.kp);
+        str := str ^ "\nDerivative Factor (Kd): ";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`controller.kd);
+        str := str ^ "\n\n";
+
         def - = io.echo(str) in skip; -- ignore the return value
     );
 
-    -- scenario 1: arm moves from 1.5 radians back to 1 radians with Kp = 0.1 and Kd = 0.01
+    -- scenario 1 - dampening at safety zones. 
     public Scenario1 : () ==> bool
     Scenario1() == (
         dcl StepCount : nat := 0;
-        MySystem`arm.SetCurrentPosition(1.5);
-        MySystem`arm.SetTargetPosition(1);
-        MySystem`controller.SetKp(0.15);
-        MySystem`controller.SetKd(0.2);
+        MySystem`arm.SetCurrentPosition(1.7); -- nær øvre sikkerhedsgrænse
+        MySystem`arm.SetTargetPosition(1.9); -- forsøger at flytte udenfor sikkerhedszone
+        MySystem`controller.SetKp(0.1);
+        MySystem`controller.SetKd(0.01);
 
         while StepCount < 500 do ( 
             MySystem`controller.MonitorAngle();
@@ -48,18 +51,21 @@ operations
 
         return true;
     );
-    
-    -- scenario 2: ideal scenario, assuming minimal overshoot and vibration, from 1.3 radians to 0
+
+
+    -- scenario 2 - Acceleration with big deviation
     public Scenario2 : () ==> bool
     Scenario2() == (
         dcl StepCount : nat := 0;
-        MySystem`arm.SetCurrentPosition(1.3);
-        MySystem`arm.SetTargetPosition(0.0);
-        MySystem`controller.SetKp(0.01); -- assumed ideal Kp for minimal overshoot
-        MySystem`controller.SetKd(0.02); -- assumed ideal Kd for at lessen oscillation
+        MySystem`arm.SetCurrentPosition(0); -- Start langt fra målpositionen
+        MySystem`arm.SetTargetPosition(1.6); -- Målpositionen for at fremprovokere acceleration
+        MySystem`controller.SetKp(0.1);
+        MySystem`controller.SetKd(0.01);
 
         while StepCount < 500 do ( 
             MySystem`controller.MonitorAngle();
+            MySystem`controller.CalculateData();
+            MySystem`controller.TorqueValue();
             MySystem`arm.Step(1);
             echoState(StepCount);
             StepCount := StepCount + 1;
@@ -67,65 +73,6 @@ operations
 
         return true;
     );
-
-    -- scenario 3: Higher `kp` value, arm moves from 0 to 1 radians, starting from 0 radians to 1
-    public Scenario3 : () ==> bool
-    Scenario3() == (
-        dcl StepCount : nat := 0;
-        MySystem`arm.SetCurrentPosition(0);
-        MySystem`arm.SetTargetPosition(1);
-        MySystem`controller.SetKp(0.2); -- higher kp for a quicker response
-        MySystem`controller.SetKd(0.3);
-
-        while StepCount < 500 do ( 
-            MySystem`controller.MonitorAngle();
-            MySystem`arm.Step(1);
-            echoState(StepCount);
-            StepCount := StepCount + 1;
-        );
-
-        return true;
-    );
-
-    -- scenario 4: what can go wrong. To high Kp and too low Kd, starting from 0 to 1.4 radians
-    public Scenario4 : () ==> bool
-    Scenario4() == (
-        dcl StepCount : nat := 0;
-        MySystem`arm.SetCurrentPosition(0);
-        MySystem`arm.SetTargetPosition(1.4);
-        MySystem`controller.SetKp(1.0); -- too high Kp exessive overshoot
-        MySystem`controller.SetKd(0.01); -- too low Kd, not enough to dampen oscillation
-
-        while StepCount < 500 do ( 
-            MySystem`controller.MonitorAngle();
-            MySystem`arm.Step(1);
-            echoState(StepCount);
-            StepCount := StepCount + 1;
-        );
-
-        return true;
-    );
-
-    public Scenario5 : () ==> bool
-    Scenario5() == (
-        dcl StepCount : nat := 0;
-        MySystem`arm.SetCurrentPosition(0.3);
-        MySystem`arm.SetTargetPosition(0.7);
-        MySystem`controller.SetKp(0.01); 
-        MySystem`controller.SetKd(0.12);
-
-        --! monitor angle
-        while StepCount < 500 do ( 
-            if StepCount mod 2 = 0 then
-            MySystem`controller.MonitorAngle();
-            MySystem`arm.Step(1);
-            echoState(StepCount);
-            StepCount := StepCount + 1;
-        );
-
-        return true;
-    );
-
 
 
 end World
