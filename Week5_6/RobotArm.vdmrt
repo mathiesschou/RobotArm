@@ -4,19 +4,20 @@ types
     public Angle = real inv N == N >= 0 and N <= 1.6; -- begrænsning N ca 0 til 90 grader
 
 values 
-    public N1 : real = 0;
-    public N2 : real =1.6;
+    public M1 : real = -0.2; -- max lower range
+    public M2 : real = 1.8; -- max upper range
+    public N1 : real = 0; -- safe lower range
+    public N2 : real = 1.6; -- safe upper range
 
     r: real = 0.8; -- arm lægnde i m
     mass: real = 1.2; -- kg
     Fc: real = 0.1; -- Coulomb friktionskoefficient
     Fv: real = 0.05; -- viskøs friktionskoefficient
 
-
 instance variables
 
-    public env_q : real; -- kg, angle of roint. radianer
-    public env_qt : real;
+    public env_q : real; -- angle of roint. radianer
+    public env_qt : real; -- target angle. radianer 
     
     public q_vel: real; -- hastighed. rad/s
     public q_acc: real; -- acceleration. rad/s^2
@@ -28,7 +29,7 @@ instance variables
     public prevError: real; -- radianer
 
     public accumulatedTime: real; -- simuleret tid
-    public env_motorOn: bool := false; -- 1=running, 0=stopped
+    public env_motorOn: bool; -- motor
 
 operations
     public RobotArm: () ==> RobotArm
@@ -45,11 +46,6 @@ operations
         accumulatedTime := 0; 
     );
 
-    --! Making sure connection between controller and robotarm is up. 
-    public IsReady: () ==> bool
-        IsReady() == (
-        return true; 
-    );
 
     public TurnMotorOn: () ==> ()
     TurnMotorOn() == (
@@ -61,6 +57,7 @@ operations
         env_motorOn := false;
     );
 
+    --! Set Position angle
     public SetTargetPosition: Angle ==> ()
     SetTargetPosition(target) == (
         env_qt := target;
@@ -71,6 +68,7 @@ operations
         env_q := position;
     );
 
+    --! Coefficients
     public SetKp: real ==> ()
     SetKp(k_p) == (
         kp := k_p;
@@ -81,6 +79,8 @@ operations
         kd := k_d;
     );
     
+
+    --! Step function
     public Step: real ==> ()
     Step(delta) == duration(0) (
         if env_motorOn then (
