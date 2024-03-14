@@ -59,18 +59,38 @@ operations
     CalculateData() == (
         dcl errorPos : real := MySystem`arm.env_qt - MySystem`arm.env_q;
         dcl errorDerivative : real := (errorPos - prevError) / 1;
-        dcl slowingFactor : real := 0.5;
-        dcl acceleration : real := 1.2;
+        dcl dynamicKp : real := kp;
+        dcl dynamicKd : real := kd;
+        dcl slowingFactor : real := 0.2;
+        dcl acceleration : real := 1.5;
 
-        if abs(errorPos) > 0.4 then
+        -- dynamic adjustment
+        if abs(errorPos) > 0.4 then (
             errorPos := errorPos * acceleration;
+            dynamicKp := kp * acceleration;
+        ) elseif abs(errorPos) < 0.4 then (
+            dynamicKp := kp * slowingFactor;
+            
+            -- adjust kd based on systems vel and acceleration
+            if MySystem`arm.q_vel > 0.05 or MySystem`arm.q_acc > 0.02 then (
+                dynamicKd := kd * 2; -- increase kd, if vel or acc is high
+            ) else (
+                dynamicKd := kd * slowingFactor; -- decrease kd for "soft" landing
+            );
+        );
 
-        if MySystem`arm.env_q < MySystem`controller.N1 or MySystem`arm.env_q > MySystem`controller.N2 then
-            -- Slow down the movement
+        if MySystem`arm.env_q < MySystem`controller.N1 or MySystem`arm.env_q > MySystem`controller.N2 then (
             errorPos := errorPos * slowingFactor;
+        );
 
-        MySystem`arm.env_motorTorque := (kp * errorPos) + (kd * errorDerivative);
+        MySystem`arm.env_motorTorque := (dynamicKp * errorPos) + (dynamicKd * errorDerivative);
         
+        if MySystem`arm.env_q >= 1.8 then (
+            MySystem`arm.env_q := 1.8;
+            MySystem`arm.q_vel := 0;
+            MySystem`arm.q_acc := 0;
+            MySystem`arm.env_motorTorque := 0;
+        );
         prevError := errorPos;
     );
 

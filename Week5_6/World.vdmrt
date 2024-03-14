@@ -22,10 +22,10 @@ operations
         str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.q_acc);
         str := str ^ "\nMotor Torque (Nm): ";
         str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.env_motorTorque);
-        str := str ^ "\nProportional Factor (Kp): ";
-        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`controller.kp);
-        str := str ^ "\nDerivative Factor (Kd): ";
-        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`controller.kd);
+        --str := str ^ "\nProportional Factor (Kp): ";
+        --str := str ^ VDMUtil`val2seq_of_char[real](MySystem`controller.kp);
+        --str := str ^ "\nDerivative Factor (Kd): ";
+        --str := str ^ VDMUtil`val2seq_of_char[real](MySystem`controller.kd);
         str := str ^ "\n\n";
 
         def - = io.echo(str) in skip; -- ignore the return value
@@ -35,10 +35,10 @@ operations
     public Scenario1 : () ==> bool
     Scenario1() == (
         dcl StepCount : nat := 0;
-        MySystem`arm.SetCurrentPosition(1.7); -- nær øvre sikkerhedsgrænse
-        MySystem`arm.SetTargetPosition(1.9); -- forsøger at flytte udenfor sikkerhedszone
-        MySystem`controller.SetKp(0.1);
-        MySystem`controller.SetKd(0.01);
+        MySystem`arm.SetCurrentPosition(1); -- nær øvre sikkerhedsgrænse
+        MySystem`arm.SetTargetPosition(1.7); -- forsøger at flytte udenfor sikkerhedszone
+        MySystem`controller.SetKp(0.01);
+        MySystem`controller.SetKd(0.02);
 
         while StepCount < 500 do ( 
             MySystem`controller.MonitorAngle();
@@ -54,13 +54,14 @@ operations
 
 
     -- scenario 2 - Acceleration with big deviation
+
     public Scenario2 : () ==> bool
     Scenario2() == (
         dcl StepCount : nat := 0;
         MySystem`arm.SetCurrentPosition(0); -- Start langt fra målpositionen
         MySystem`arm.SetTargetPosition(1.6); -- Målpositionen for at fremprovokere acceleration
-        MySystem`controller.SetKp(0.1);
-        MySystem`controller.SetKd(0.01);
+        MySystem`controller.SetKp(0.01);
+        MySystem`controller.SetKd(0.02);
 
         while StepCount < 500 do ( 
             MySystem`controller.MonitorAngle();
