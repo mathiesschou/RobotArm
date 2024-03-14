@@ -8,7 +8,8 @@ values
 
 instance variables
     public env_q : real; -- angle of roint. radianer
-    public env_qt : real; -- target angle. radianer 
+    public env_qt : real; -- target angle. radianer
+    public env_motorTorque : real; 
     public q_vel: real; -- hastighed. rad/s
     public q_acc: real; -- acceleration. rad/s^2
     --! PID controller
@@ -20,6 +21,7 @@ operations
     RobotArm() == (
         env_q := 0;
         env_qt := 0;
+        env_motorTorque := 0;
         q_vel := 0; 
         q_acc := 0; 
         accumulatedTime := 0; 

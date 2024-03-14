@@ -11,19 +11,25 @@ instance variables
     public kp: real := 0.1; -- proportional factor
     public kd: real := 0.01; -- derivative factor
     public prevError: real := 0; -- radians
-    public motorTorque : real := 0;
+    public ctl_motorTorque : real;
     public I : real := 2 * MySystem`arm.r * MySystem`arm.r;
 
 operations
     public Controller : () ==> Controller
     Controller () ==( 
         ctl_q := 0;
+        ctl_motorTorque := 0;
     ); 
 
     --! Montoring of environment
     public MonitorAngle : () ==> ()
     MonitorAngle() == duration(0) (
         ctl_q := MySystem`arm.env_q;
+    );
+
+    public TorqueValue : () ==> ()
+    TorqueValue() == duration(0)(
+        ctl_motorTorque := MySystem`arm.env_motorTorque;
     );
 
     --! Coefficients
@@ -40,7 +46,7 @@ operations
      -- Getter method for motorTorque
     public GetMotorTorque: () ==> real
     GetMotorTorque() == (
-        return motorTorque;
+        return MySystem`arm.env_motorTorque;
     );
 
     -- Getter method for I
@@ -53,7 +59,7 @@ operations
     CalculateTorque() == (
         dcl errorPos : real := MySystem`arm.env_qt - MySystem`arm.env_q;
         dcl errorDerivative : real := (errorPos - prevError) / 1;
-        motorTorque := (kp * errorPos) + (kd * errorDerivative);
+        MySystem`arm.env_motorTorque := (kp * errorPos) + (kd * errorDerivative);
         
         prevError := errorPos;
     );
