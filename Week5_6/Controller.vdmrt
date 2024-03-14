@@ -6,7 +6,28 @@ instance variables
     public ctl_motorOn: bool := false;
 
 operations
+-- Test 
+ public SetTargetPosition: RobotArm`Angle ==> ()
+    SetTargetPosition(target) == (
+        MySystem`arm.SetTargetPosition(target);
+    );
+-- Test
+    public SetCurrentPosition: RobotArm`Angle ==> ()
+    SetCurrentPosition(position) == (
+        MySystem`arm.SetCurrentPosition(position);
+    );
+-- Test
+    public SetKp: real ==> ()
+    SetKp(k_p) == (
+        MySystem`arm.SetKp(k_p);
+    );
+-- Test
+    public SetKd: real ==> ()
+    SetKd(k_d) == (
+        MySystem`arm.SetKd(k_d);
+    );
 
+-- Not touch
     public Controller : () ==> Controller
     Controller () ==( 
         ctl_q := 0;
