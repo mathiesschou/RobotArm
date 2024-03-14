@@ -39,7 +39,7 @@ operations
 
         while StepCount < 500 do ( 
             MySystem`controller.MonitorAngle();
-            MySystem`controller.CalculateTorque();
+            MySystem`controller.CalculateData();
             MySystem`controller.TorqueValue();
             MySystem`arm.Step(1);
             echoState(StepCount);
