@@ -60,9 +60,10 @@ operations
         dcl errorPos : real := MySystem`arm.env_qt - MySystem`arm.env_q;
         dcl errorDerivative : real := (errorPos - prevError) / 1;
         dcl slowingFactor : real := 0.5;
+        dcl acceleration : real := 1.2;
 
         if abs(errorPos) > 0.4 then
-            errorPos := errorPos * 1.2;
+            errorPos := errorPos * acceleration;
 
         if MySystem`arm.env_q < MySystem`controller.N1 or MySystem`arm.env_q > MySystem`controller.N2 then
             -- Slow down the movement
