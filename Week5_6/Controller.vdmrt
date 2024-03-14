@@ -2,21 +2,15 @@ class Controller
 
 instance variables
 
-    public ctl_q: real; -- rad
-    public ctl_q_vel: real; -- rad/s
-    public ctl_q_t: real; -- change
+    public ctl_q: real; 
     public ctl_motorOn: bool := false;
-    public ctl_vel_change: real; 
 
 operations
 
     public Controller : () ==> Controller
     Controller () ==( 
-        ctl_q_t := 0;
         ctl_q := 0;
-        ctl_q_vel := 0;
         ctl_motorOn := false;
-        ctl_vel_change := 0;
     ); 
 
     public CheckArmReady: () ==> bool
@@ -28,21 +22,6 @@ operations
     MonitorAngle() == duration(0) (
         ctl_q := MySystem`arm.env_q;
     );
-
-    public MonitorVel : () ==> ()
-    MonitorVel() == duration(0) (
-        ctl_q_vel := MySystem`arm.env_q_vel;
-    );
-
-    public MonitorChangeAngle : () ==> ()
-    MonitorChangeAngle() == duration(0) (
-        ctl_q_t := MySystem`arm.env_qt;
-    );
-
-    public MonitorVelChange : () ==> ()
-    MonitorVelChange() == duration(0) (
-        ctl_vel_change := MySystem`arm.env_vel_change;
-    );
     
     public EnsureSafeAngle : () ==> ()
     EnsureSafeAngle() == duration(0) (
@@ -50,7 +29,6 @@ operations
            MotorOff();
         )
     );
-    
     
     public MotorOn : () ==> ()
     MotorOn() == duration(0) (
@@ -62,48 +40,6 @@ operations
     MotorOff() == (
         ctl_motorOn := false;
         MySystem`arm.env_motorOn := false;
-    );
-
-    public MonitorEnv : () ==> ()  --Collect all env data
-    MonitorEnv() == duration(0) (
-        ctl_q := MySystem`arm.env_q;
-        ctl_q_t := MySystem`arm.env_qt;
-        ctl_q_vel := MySystem`arm.env_q_vel;
-        ctl_vel_change := MySystem`arm.env_vel_change;
-    );
-
-
-    --! Controller logic 1st iteration:
-    public AdjustControlParameters : () ==> ()
-    AdjustControlParameters() == (
-        dcl distanceToTarget : real := abs(ctl_q - ctl_q_t);
-        dcl velocityChange : real := abs(ctl_q_vel - ctl_vel_change); 
-        
-        dcl scaleFactorKp : real := 0.1; 
-        dcl newKp : real := scaleFactorKp * distanceToTarget;
-
-        dcl scaleFactorKd : real := 0.05; 
-        dcl newKd : real := scaleFactorKd * velocityChange;
-        
-        -- adjust Kp based on distance to target
-
-        if newKp < 0.05 then (
-            newKp := 0.05;
-        ) elseif newKp > 0.2 then (
-            newKp := 0.2;
-        );
-        
-        -- adjust Kd based on the rate of change in velocity
-        
-        if newKd < 0.01 then (
-            newKd := 0.01;
-        ) elseif newKd > 0.2 then (
-            newKd := 0.2;
-        );
-        
-        -- Set the new Kp and Kd values
-        MySystem`arm.SetKp(newKp);
-        MySystem`arm.SetKd(newKd);
     );
 
 end Controller
