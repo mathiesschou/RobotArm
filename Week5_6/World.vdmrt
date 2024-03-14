@@ -13,12 +13,17 @@ operations
         str := str ^ "Time count: ";
         str := str ^ VDMUtil`val2seq_of_char[nat](counter);
         str := str ^ "\n";
-        str := str ^ "Enviroment q: ";
+        str := str ^ "Envionment q: ";
         str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.env_q);
         str := str ^ "\n";
         str := str ^ "Controller q: ";
         str := str ^ VDMUtil`val2seq_of_char[real](MySystem`controller.ctl_q);
         str := str ^ "\n";
+        str := str ^ "Envionment Torque: ";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`arm.env_motorTorque);
+        str := str ^ "\n";
+        str := str ^ "Controller Torque: ";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`controller.ctl_motorTorque);
         str := str ^ "\n";
         def - = io.echo(str) in skip; -- ignore the return value
     );
@@ -35,6 +40,7 @@ operations
         while StepCount < 500 do ( 
             MySystem`controller.MonitorAngle();
             MySystem`controller.CalculateTorque();
+            MySystem`controller.TorqueValue();
             MySystem`arm.Step(1);
             echoState(StepCount);
             StepCount := StepCount + 1;
